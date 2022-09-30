@@ -1,0 +1,31 @@
+#!/usr/bin/env zsh
+
+# Recursive shell script to rename all files and directories in place to plain old ASCII.  Take a snapshot first, at least if you are sensible enough to use ZFS.  Requires the unidecode python module.
+# bushchannelstepper 2022
+
+set -e
+
+if [ ! -d "$1" ]
+then
+  echo "Argument must be a directory"
+  exit 1
+fi
+
+find "$1" -depth | \
+while IFS= read -r RAW; do 
+  if [ "$RAW" = "." ]
+  then
+    continue
+  fi
+
+  BASEPATH=$(dirname "$RAW")
+  BASENAME=$(basename "$RAW")
+  CLEAN_BASENAME=$(echo $BASENAME | unidecode | sed s:/:__:g )
+  CLEANED="$BASEPATH/$CLEAN_BASENAME"
+
+  if [ "$RAW" != "$CLEANED" ]
+  then
+    echo Renaming "$RAW" to "$CLEANED"
+    mv "$RAW" "$CLEANED"
+  fi
+done
